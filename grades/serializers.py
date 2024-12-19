@@ -1,7 +1,8 @@
 from rest_framework import serializers
-from .models import Grade
+from grades.models import Grade
+
 
 class GradeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Grade
-        fields = ['id', 'student', 'grade', 'date']
+        fields = ['id', 'student', 'teacher', 'score', 'subject', 'date_assigned']
