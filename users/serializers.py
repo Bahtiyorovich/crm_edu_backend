@@ -8,12 +8,25 @@ from .models import User, AdminProfile, TeacherProfile, StudentProfile, Group
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
+        # Asl JWT tokenni olish
         token = super().get_token(user)
 
-        # Add custom claims
-        token['role'] = user.role
-        token['user_id'] = user.id
+        # Maxsus ma'lumotlarni qo'shish
+        token['role'] = user.role  # Foydalanuvchi roli (admin, teacher, student)
+        token['user_id'] = user.id  # Foydalanuvchi ID'si
+        token['username'] = user.username  # Foydalanuvchi nomi (ixtiyoriy)
         return token
+
+    def validate(self, attrs):
+        # Asl tokenni yaratish
+        data = super().validate(attrs)
+
+        # Qo'shimcha ma'lumotlarni javobga qo'shish
+        data['role'] = self.user.role
+        data['user_id'] = self.user.id
+        data['username'] = self.user.username
+        return data
+
 
 
 class AdminProfileSerializer(serializers.ModelSerializer):

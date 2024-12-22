@@ -19,15 +19,15 @@ class User(AbstractUser):
     def __str__(self):
         return f"{self.username} ({self.role})"
 
-    # Role-based permissions
     def is_admin(self):
-        return self.role == 'admin'
+        return self.is_authenticated and self.role == 'admin'
 
     def is_teacher(self):
-        return self.role == 'teacher'
+        return self.is_authenticated and self.role == 'teacher'
 
     def is_student(self):
-        return self.role == 'student'
+        return self.is_authenticated and self.role == 'student'
+
 
 class Group(models.Model):
     name = models.CharField(max_length=100)
@@ -74,7 +74,7 @@ class TeacherProfile(models.Model):
 
     def get_students(self):
         # O'qituvchi bilan bog'langan barcha o'quvchilarni olish
-        return User.objects.filter(teacherprofile__teacher=self.user)
+        return User.objects.filter(student_profile__group__teachers=self.user)
 
     def get_student_grades(self, student):
         # O'qituvchining talabasining baholarini olish
@@ -112,13 +112,12 @@ class StudentProfile(models.Model):
         return f"Student profile: {self.user.username}"
 
 
-# Signals to create profiles automatically
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
         if instance.role == 'admin':
-            AdminProfile.objects.create(user=instance)
+            AdminProfile.objects.get_or_create(user=instance)
         elif instance.role == 'teacher':
-            TeacherProfile.objects.create(user=instance)
+            TeacherProfile.objects.get_or_create(user=instance)
         elif instance.role == 'student':
-            StudentProfile.objects.create(user=instance)
+            StudentProfile.objects.get_or_create(user=instance)
